@@ -49,6 +49,16 @@ function addPromiseSupport(store, dispatch) {
 }
 
 
+function addLoger(store, dispatch) {
+    return (action) => {
+        console.log('PREVIOUS STATE', store.getState());
+        console.log('ACTION', action);
+        dispatch(action);
+        console.log('CURRENT STATE', store.getState());
+
+    }
+}
+
 const store = createStore(reducer);
 p = console.log;
 
@@ -57,6 +67,7 @@ const dec = {type: 'DECREMENT'};
 
 //прокачиваем dispatch
 store.dispatch = addPromiseSupport(store, store.dispatch);
+store.dispatch = addLoger(store, store.dispatch());
 
 store.dispatch(incrementAsync());
 
