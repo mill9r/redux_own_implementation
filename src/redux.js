@@ -29,11 +29,14 @@ const reducer = (state = 0, action) => {
         return state - 1;
     }
 };
-
+// убираем промоис и делаем через так называемый func -> вернем функцию, которая внутри себя принимает dispatch
+// будет аналогичное поведение Promise -> если надо использовать async используют Thunk
 function incrementAsync() {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve({type: 'INCREMENT'}), 1000)
-    })
+    return (dispatch)=>{
+        setTimeout(()=>{
+            dispatch({type:'INCREMENT'})
+        },1000)
+    }
 }
 
 //если action принимает промис, то не даем вернуть значение и вернем только когда промис зарезолвится
@@ -59,18 +62,26 @@ function addLoger(store, dispatch) {
     }
 }
 
+//добавляем функциональным подход
+// thunk используется вместо асинхронности
+function addThunkSupport(store, dispatch) {
+    return(action)=>{
+        if (typeof action ==='function'){
+            return action(dispatch);
+        }
+        return dispatch(action);
+    }
+}
+
+
 const store = createStore(reducer);
 p = console.log;
 
-const inc = {type: 'INCREMENT'};
-const dec = {type: 'DECREMENT'};
 
 //прокачиваем dispatch
+store.dispatch = addLoger(store, store.dispatch);
 store.dispatch = addPromiseSupport(store, store.dispatch);
-store.dispatch = addLoger(store, store.dispatch());
+store.dispatch = addThunkSupport(store, store.dispatch);
 
 store.dispatch(incrementAsync());
 
-store.subscribe(() => {
-    p(store.getState())
-});
