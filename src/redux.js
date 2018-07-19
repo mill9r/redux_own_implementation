@@ -30,17 +30,36 @@ const reducer = (state = 0, action) => {
     }
 };
 
+function incrementAsync() {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve({type: 'INCREMENT'}), 1000)
+    })
+}
+
+//если action принимает промис, то не даем вернуть значение и вернем только когда промис зарезолвится
+function addPromiseSupport(store, dispatch) {
+    return (action) => {
+        if ('then' in action) {
+            // не даем action попасть в reducer, пока не зарезолвится
+            return action.then(asyncSection => dispatch(asyncSection))
+        }
+
+        return dispatch(action);
+    }
+}
+
 
 const store = createStore(reducer);
 p = console.log;
 
-const  inc = {type:'INCREMENT'};
-const dec = {type:'DECREMENT'};
+const inc = {type: 'INCREMENT'};
+const dec = {type: 'DECREMENT'};
 
-store.dispatch(inc);
-store.dispatch(inc);
-store.dispatch(inc);
-store.dispatch(dec);
+//прокачиваем dispatch
+store.dispatch = addPromiseSupport(store, store.dispatch);
 
+store.dispatch(incrementAsync());
 
-p(store.getState()); //output 2
+store.subscribe(() => {
+    p(store.getState())
+});
